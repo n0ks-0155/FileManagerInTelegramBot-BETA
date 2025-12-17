@@ -97,17 +97,14 @@ def register_command_handlers(bot: telebot.TeleBot):
         current_path = data["users"][user_id]["current_path"]
         structure = data["users"][user_id]["structure"]
 
-        # Навигация до текущей папки
         try:
             current = navigate_to_path(structure, current_path)
         except KeyError:
             bot.reply_to(message, "Текущая папка не существует.")
             return
 
-        # Генерация уникального ключа
         unique_key = uuid.uuid4().hex
 
-        # Сохранение связи ключа с пользователем и путем
         data["shared_folders"][unique_key] = {
             "user_id": user_id,
             "path": current_path.copy()
@@ -115,7 +112,7 @@ def register_command_handlers(bot: telebot.TeleBot):
 
         save_data(data)
 
-        # Отправка ключа пользователю
+        #Отправка ключа пользователю
         bot.reply_to(message, f"Папка успешно сделана публичной.\nВаш ключ для доступа: `{unique_key}`\nИспользуйте команду /access <ключ> чтобы получить доступ.", parse_mode="Markdown")
 
     @bot.message_handler(commands=['access'])
@@ -138,7 +135,7 @@ def register_command_handlers(bot: telebot.TeleBot):
         owner_id = shared["user_id"]
         path = shared["path"]
 
-        # Проверка, существует ли пользователь и папка
+        #Проверка, существует ли пользователь и папка
         if owner_id not in data["users"]:
             bot.reply_to(message, "Владелец папки не существует.")
             return
@@ -150,10 +147,11 @@ def register_command_handlers(bot: telebot.TeleBot):
             bot.reply_to(message, "Папка не найдена.")
             return
 
-        # Генерация клавиатуры для публичной папки
+        #Генерация клавиатуры для публичной папки
         markup = generate_markup(shared_folder, path, shared_key=access_key)
 
         try:
             bot.send_message(message.chat.id, "Содержимое публичной папки:", reply_markup=markup)
         except telebot.apihelper.ApiTelegramException as e:
+
             bot.send_message(message.chat.id, f"Ошибка при отправке клавиатуры: {str(e)}")
